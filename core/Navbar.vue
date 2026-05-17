@@ -193,7 +193,7 @@ export default {
   <nav class="navbar-wrapper">
     <div class="card">
       <div class="icon-slot">
-        <a href="/NMyAdmin/home" class="icon-link">
+        <a href="/home" class="icon-link">
           <img :src="iconPath" alt="APPLICATION ICON" class="icon-img"/>
           <span class="icon-label" v-html="iconLabel"></span>
         </a>
