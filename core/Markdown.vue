@@ -2,63 +2,10 @@
  * Author: Mele Nicolo' Emanuele
  * Date: 2026-05-13
  * License: MIT
- * Description: Markdown component with syntax highlighting, editable mode, frontmatter parsing, and __#slug__ anchor navigation support.
+ * Description: Markdown component with syntax highlighting, frontmatter parsing, __#slug__ anchor navigation support, and KaTeX math rendering.
  */
 <template>
-  <div v-if="editable" class="markdown-editor-wrapper">
-    <div class="markdown-editor-toolbar">
-      <span class="markdown-editor-label">Markdown Editor</span>
-      <div class="markdown-editor-toolbar-actions">
-        <Button
-          :icon="isPreviewOnly ? 'pi pi-pencil' : 'pi pi-eye'"
-          :label="isPreviewOnly ? 'Edit' : 'Preview'"
-          size="small"
-          text
-          @click="isPreviewOnly = !isPreviewOnly"
-        />
-        <Button
-          icon="pi pi-check"
-          label="Confirm"
-          size="small"
-          severity="success"
-          @click="handleConfirm"
-        />
-      </div>
-    </div>
-
-    <div class="markdown-editor-body" :class="{ 'markdown-editor-body--preview': isPreviewOnly }">
-      <div v-if="!isPreviewOnly" class="markdown-editor-pane markdown-editor-pane--input">
-        <Textarea
-          v-model="editableContent"
-          class="markdown-editor-textarea"
-          autoResize
-          :placeholder="'Write your markdown here...'"
-        />
-      </div>
-
-      <Divider v-if="!isPreviewOnly" layout="vertical" />
-
-      <div class="markdown-editor-pane markdown-editor-pane--preview">
-        <component
-          :is="tag"
-          class="markdown-content"
-          :class="[
-            `markdown--${variant}`,
-            {
-              'markdown--prose': prose,
-              'markdown--no-margin': noMargin,
-              'markdown--compact': compact,
-            },
-          ]"
-          :style="contentStyle"
-          v-html="renderedContent"
-        />
-      </div>
-    </div>
-  </div>
-
   <component
-    v-else
     :is="tag"
     class="markdown-content"
     :class="[
@@ -77,32 +24,30 @@
 <script>
 import { mapState } from 'pinia';
 import { useGenericStore } from '@/stores/generic';
-import Button from 'primevue/button';
-import Textarea from 'primevue/textarea';
-import Divider from 'primevue/divider';
 
 const CDN = {
-  marked: 'https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js',
+  marked:    'https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js',
   highlight: 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/highlight.min.js',
+  katex:     'https://cdn.jsdelivr.net/npm/katex@0.16.10/katex.min.js',
 }
 
 const CSS = {
-  github: 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css',
-  githubDark: 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css',
-  atomOneDark: 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/atom-one-dark.min.css',
+  github:       'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css',
+  githubDark:   'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css',
+  atomOneDark:  'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/atom-one-dark.min.css',
   atomOneLight: 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/atom-one-light.min.css',
-  nord: 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/nord.min.css',
-  monokai: 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/monokai.min.css',
-  dracula: 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/dracula.min.css',
-  vitesse: 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/base16/material.min.css',
+  nord:         'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/nord.min.css',
+  monokai:      'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/monokai.min.css',
+  dracula:      'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/dracula.min.css',
+  vitesse:      'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/base16/material.min.css',
+  katex:        'https://cdn.jsdelivr.net/npm/katex@0.16.10/katex.min.css',
 }
 
 const loadedScripts = {}
-const loadedStyles = {}
+const loadedStyles  = {}
 
-const FRONTMATTER_PATTERN = /^---\s*\n([\s\S]*?)\n---\s*\n?/
-
-const ANCHOR_LINK_PATTERN = /\[([^\]]+)\]\(__#([^)]+)__\)/g
+const FRONTMATTER_PATTERN  = /^---\s*\n([\s\S]*?)\n---\s*\n?/
+const ANCHOR_LINK_PATTERN  = /\[([^\]]+)\]\(__#([^)]+)__\)/g
 
 /**
  * @param src String
@@ -186,10 +131,61 @@ function preprocessAnchorLinks(source) {
   })
 }
 
+/**
+ * @param source String
+ * @return String
+ * @desc Extracts and escapes math expressions before markdown parsing to prevent
+ *       marked from mangling LaTeX syntax (e.g. underscores, backslashes).
+ *       Display math  $$…$$  and inline math  $…$  are replaced with
+ *       placeholder tokens that are restored after rendering.
+ */
+function extractMath(source) {
+  const blocks = []
+
+  /**
+   * @param expr String
+   * @param display Boolean
+   * @return String
+   * @desc Stores a math expression and returns a unique placeholder token.
+   */
+  function store(expr, display) {
+    const idx = blocks.push({ expr, display }) - 1
+    return `@@MATH${idx}@@`
+  }
+
+  // Display math: $$...$$
+  source = source.replace(/\$\$([\s\S]+?)\$\$/g, (_, expr) => store(expr, true))
+
+  // Inline math: $...$ — skip $$ by requiring no adjacent $
+  source = source.replace(/(?<!\$)\$(?!\$)((?:[^$\n]|\\.)+?)\$(?!\$)/g, (_, expr) => store(expr, false))
+
+  return { source, blocks }
+}
+
+/**
+ * @param html String
+ * @param blocks Array<{ expr: String, display: Boolean }>
+ * @param katex Object
+ * @return String
+ * @desc Replaces @@MATHn@@ placeholders in the rendered HTML with KaTeX output.
+ */
+function restoreMath(html, blocks, katex) {
+  return html.replace(/@@MATH(\d+)@@/g, (_, idx) => {
+    const { expr, display } = blocks[Number(idx)]
+    try {
+      return katex.renderToString(expr, {
+        displayMode: display,
+        throwOnError: false,
+        output: 'html',
+      })
+    } catch (e) {
+      return `<span class="md-math-error" title="${escapeHtml(e.message)}">${escapeHtml(expr)}</span>`
+    }
+  })
+}
+
 export default {
   name: 'Markdown',
-
-  components: { Button, Textarea, Divider },
 
   props: {
     modelValue: {
@@ -270,6 +266,11 @@ export default {
       default: '',
     },
 
+    math: {
+      type: Boolean,
+      default: true,
+    },
+
     compact: {
       type: Boolean,
       default: false,
@@ -304,23 +305,17 @@ export default {
       type: String,
       default: 'Copied!',
     },
-
-    editable: {
-      type: Boolean,
-      default: false,
-    },
   },
 
-  emits: ['loaded', 'error', 'link-click', 'confirm'],
+  emits: ['loaded', 'error', 'link-click'],
 
   data() {
     return {
       markedInstance: null,
-      hlInstance: null,
-      loadError: null,
-      isLoaded: false,
-      editableContent: this.modelValue,
-      isPreviewOnly: false,
+      hlInstance:     null,
+      katexInstance:  null,
+      loadError:      null,
+      isLoaded:       false,
     };
   },
 
@@ -340,22 +335,29 @@ export default {
     /**
      * @param void
      * @return String
-     * @desc Returns the raw source stripping frontmatter, from editable state or modelValue.
+     * @desc Returns the preprocessed source: frontmatter stripped, math extracted,
+     *       and anchor links converted to button elements.
      */
     parsedSource() {
-      const raw = this.editable ? this.editableContent : this.modelValue
-      return preprocessAnchorLinks(stripFrontmatter(raw || ''))
+      return preprocessAnchorLinks(stripFrontmatter(this.modelValue || ''))
     },
 
     /**
      * @param void
      * @return String
-     * @desc Renders markdown to HTML using marked and highlight.js with anchor link support.
+     * @desc Renders markdown to HTML using marked and highlight.js.
+     *       When math is enabled, LaTeX expressions are extracted before parsing
+     *       and restored as KaTeX HTML afterwards.
      */
     renderedContent() {
       if (!this.parsedSource || !this.markedInstance) return ''
 
       try {
+        // Extract math before marked touches the source to protect LaTeX syntax
+        const { source, blocks } = (this.math && this.katexInstance)
+          ? extractMath(this.parsedSource)
+          : { source: this.parsedSource, blocks: [] }
+
         const renderer = new this.markedInstance.Renderer()
 
         renderer.code = function(code, lang) {
@@ -399,12 +401,12 @@ export default {
             return `<a href="${href}"${titleAttr} class="md-link md-link--anchor">${text}</a>`
           }
           const target = this.linkTarget ? ` target="${this.linkTarget}"` : ''
-          const rel = this.linkRel ? ` rel="${this.linkRel}"` : ''
+          const rel    = this.linkRel    ? ` rel="${this.linkRel}"`       : ''
           return `<a href="${href}"${titleAttr}${target}${rel} class="md-link">${text}</a>`
         }
 
         renderer.heading = (text, level) => {
-          const slug = `${this.headingPrefix}${slugify(text)}`
+          const slug   = `${this.headingPrefix}${slugify(text)}`
           const anchor = this.headingIds
             ? `<a class="md-anchor" href="#${slug}" aria-hidden="true">#</a>`
             : ''
@@ -413,12 +415,19 @@ export default {
 
         renderer.image = (href, title, text) => {
           const t = title ? ` title="${escapeHtml(title)}"` : ''
-          const a = text ? ` alt="${escapeHtml(text)}"` : ''
+          const a = text  ? ` alt="${escapeHtml(text)}"`    : ''
           return `<figure class="md-figure"><img src="${href}"${a}${t} class="md-img" loading="lazy" />${text ? `<figcaption class="md-caption">${escapeHtml(text)}</figcaption>` : ''}</figure>`
         }
 
         this.markedInstance.setOptions({ breaks: this.breaks, gfm: this.gfm, renderer })
-        return this.markedInstance.parse(this.parsedSource)
+        let html = this.markedInstance.parse(source)
+
+        // Restore math placeholders with KaTeX-rendered HTML
+        if (blocks.length) {
+          html = restoreMath(html, blocks, this.katexInstance)
+        }
+
+        return html
       } catch (e) {
         this.loadError = e.message
         this.$emit('error', e)
@@ -449,6 +458,12 @@ export default {
         this.hlInstance = window.hljs
       }
 
+      if (this.math) {
+        await loadScript(CDN.katex)
+        this.katexInstance = window.katex
+        loadStyle(CSS.katex)
+      }
+
       this.applyHighlightTheme()
       this.isLoaded = true
       this.$emit('loaded')
@@ -467,11 +482,6 @@ export default {
   watch: {
     resolvedTheme() {
       this.applyHighlightTheme()
-    },
-
-    modelValue(newValue) {
-      if (!this.editable) return
-      this.editableContent = newValue
     },
 
     modelValue() {
@@ -516,7 +526,7 @@ export default {
 
       const anchorButton = e.target.closest('.md-anchor-btn')
       if (anchorButton) {
-        const targetId = anchorButton.dataset.anchor
+        const targetId      = anchorButton.dataset.anchor
         const targetElement = document.getElementById(targetId)
         if (targetElement) {
           targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -527,7 +537,7 @@ export default {
       const anchorLink = e.target.closest('.md-link--anchor')
       if (anchorLink) {
         e.preventDefault()
-        const targetId = anchorLink.getAttribute('href').slice(1)
+        const targetId      = anchorLink.getAttribute('href').slice(1)
         const targetElement = document.getElementById(targetId)
         if (targetElement) {
           targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -540,91 +550,11 @@ export default {
         this.$emit('link-click', { href: externalLink.href, event: e })
       }
     },
-
-    /**
-     * @param void
-     * @return void
-     * @desc Emits the confirm event with the current editable markdown content.
-     */
-    handleConfirm() {
-      this.$emit('confirm', this.editableContent)
-    },
   },
 };
 </script>
 
 <style scoped>
-.markdown-editor-wrapper {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.markdown-editor-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.4rem 0.75rem;
-  background: color-mix(in srgb, var(--foreground) 5%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
-  min-height: 2.75rem;
-}
-
-.markdown-editor-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: color-mix(in srgb, var(--foreground) 50%, transparent);
-  font-family: 'SF Mono', 'Fira Code', monospace;
-}
-
-.markdown-editor-toolbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.markdown-editor-body {
-  display: flex;
-  flex-direction: row;
-  min-height: 300px;
-  max-height: 70vh;
-  overflow-x: hidden;
-  overflow-y: visible;
-}
-
-.markdown-editor-body--preview {
-  flex-direction: column;
-}
-
-.markdown-editor-pane {
-  flex: 1;
-  padding: 1rem;
-}
-
-.markdown-editor-pane--input {
-  display: flex;
-  flex-direction: column;
-}
-
-.markdown-editor-textarea {
-  width: 100%;
-  height: 100%;
-  min-height: 260px;
-  flex: 1;
-  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-  font-size: 0.8125rem;
-  line-height: 1.65;
-  border: none;
-  outline: none;
-  resize: none;
-  background: transparent;
-  color: var(--foreground);
-}
-
 .markdown-content {
   font-family: var(--font-family);
   color: var(--foreground);
@@ -900,6 +830,44 @@ export default {
 .markdown--prose :deep(tr:nth-child(even) td) {
   background: color-mix(in srgb, var(--foreground) 2.5%, transparent);
 }
+
+/* ── Math ────────────────────────────────────────────────────────────────── */
+
+/*
+ * Display math blocks: KaTeX wraps displayMode output in .katex-display.
+ * Add vertical rhythm and horizontal scroll for wide equations.
+ */
+.markdown--prose :deep(.katex-display) {
+  margin: 1.25em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25em 0;
+}
+
+/*
+ * Inherit the document font size so math scales correctly with variant classes
+ * instead of rendering at KaTeX's default 1.21em standalone size.
+ */
+.markdown--prose :deep(.katex) {
+  font-size: 1.05em;
+}
+
+/*
+ * Fallback pill shown when KaTeX fails to parse an expression.
+ */
+.markdown--prose :deep(.md-math-error) {
+  display: inline-block;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.875em;
+  padding: 0.15em 0.5em;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--error, #ef4444) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error, #ef4444) 30%, transparent);
+  color: var(--error, #ef4444);
+  cursor: help;
+}
+
+/* ── Errors ──────────────────────────────────────────────────────────────── */
 
 .markdown--prose :deep(.md-error) {
   color: var(--error, #ef4444);
