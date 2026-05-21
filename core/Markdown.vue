@@ -133,7 +133,7 @@ function preprocessAnchorLinks(source) {
 
 /**
  * @param source String
- * @return String
+ * @return { source: String, blocks: Array<{ expr: String, display: Boolean }> }
  * @desc Extracts and escapes math expressions before markdown parsing to prevent
  *       marked from mangling LaTeX syntax (e.g. underscores, backslashes).
  *       Display math  $$…$$  and inline math  $…$  are replaced with
@@ -346,11 +346,17 @@ export default {
      * @param void
      * @return String
      * @desc Renders markdown to HTML using marked and highlight.js.
+     *       Depends on isLoaded so Vue re-evaluates this computed after all CDN
+     *       libraries finish loading and katexInstance / hlInstance are populated.
      *       When math is enabled, LaTeX expressions are extracted before parsing
      *       and restored as KaTeX HTML afterwards.
+     *       marked v12 passes a token object { text, lang } to renderer.code
+     *       instead of positional (code, lang) arguments — destructure accordingly.
      */
     renderedContent() {
-      if (!this.parsedSource || !this.markedInstance) return ''
+      // isLoaded referenced explicitly so Vue tracks it as a reactive dependency
+      // and re-runs this computed once all CDN libraries are ready
+      if (!this.parsedSource || !this.markedInstance || !this.isLoaded) return ''
 
       try {
         // Extract math before marked touches the source to protect LaTeX syntax
@@ -360,9 +366,11 @@ export default {
 
         const renderer = new this.markedInstance.Renderer()
 
-        renderer.code = function(code, lang) {
-          code = String(code)
-          const langStr = typeof lang === 'string' ? lang : (lang?.lang || '')
+        // marked v12 changed renderer.code to receive a single token object
+        // { text, lang, escaped } instead of positional (code, lang, escaped)
+        renderer.code = function({ text, lang }) {
+          const code    = String(text)
+          const langStr = typeof lang === 'string' ? lang : ''
           const validLang = langStr && this.hlInstance?.getLanguage(langStr) ? langStr : null
           let highlighted
 
@@ -373,7 +381,7 @@ export default {
           }
 
           if (this.lineNumbers) {
-            const lines = highlighted.split('\n')
+            const lines    = highlighted.split('\n')
             const numbered = lines
               .map((line, i) => `<span class="md-line"><span class="md-line-num">${i + 1}</span>${line}</span>`)
               .join('\n')
@@ -465,6 +473,7 @@ export default {
       }
 
       this.applyHighlightTheme()
+      // Set last so renderedContent re-evaluates only once all instances are assigned
       this.isLoaded = true
       this.$emit('loaded')
     } catch (e) {
