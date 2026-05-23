@@ -6,20 +6,26 @@
  */
 
 <template>
-  <MdPreview
-    :model-value="modelValue"
-    :theme="resolvedEditorTheme"
-    :preview-theme="previewTheme"
-    :language="editorLanguage"
-    :show-code-row-number="showLineNumbers"
-    :no-mermaid="disableMermaid"
-    :no-katex="disableMath"
-    class="markdown-preview-wrapper"
-  />
+  <div
+    ref="previewContainerRef"
+    class="markdown-preview-container"
+    @click="handleContentClick"
+  >
+    <MdPreview
+      :model-value="modelValue"
+      :theme="resolvedEditorTheme"
+      :preview-theme="previewTheme"
+      :language="editorLanguage"
+      :show-code-row-number="showLineNumbers"
+      :no-mermaid="disableMermaid"
+      :no-katex="disableMath"
+      class="markdown-preview-wrapper"
+    />
+  </div>
 </template>
 
 <script>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { MdPreview } from 'md-editor-v3';
 import 'md-editor-v3/lib/preview.css';
@@ -60,9 +66,12 @@ export default {
     },
   },
 
-  setup() {
+  emits: ['external-link-click'],
+
+  setup(props, { emit }) {
     const genericStore = useGenericStore();
     const { theme: globalTheme } = storeToRefs(genericStore);
+    const previewContainerRef = ref(null);
 
     /**
      * @desc Maps the global Pinia theme string to the MdPreview-compatible theme value.
@@ -72,14 +81,67 @@ export default {
       globalTheme.value === 'dark' ? 'dark' : 'light'
     );
 
+    /**
+     * @desc Extracts the anchor slug from an href, handling both bare (#slug) and absolute (http://…#slug) formats.
+     * @param anchorHref {String}
+     * @return {String|null}
+     */
+    function extractAnchorSlug(anchorHref) {
+      if (!anchorHref) return null;
+      const hashIndex = anchorHref.indexOf('#');
+      if (hashIndex === -1) return null;
+      return anchorHref.slice(hashIndex + 1) || null;
+    }
+
+    /**
+     * @desc Scrolls smoothly to the heading element whose id matches the given slug.
+     * @param slug {String}
+     * @return {Boolean}
+     */
+    function scrollToHeading(slug) {
+      const targetElement = document.getElementById(slug);
+      if (!targetElement) return false;
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return true;
+    }
+
+    /**
+     * @desc Intercepts clicks inside the preview container, handling anchor links for in-page navigation and emitting external links.
+     * @param clickEvent {MouseEvent}
+     * @return {void}
+     */
+    function handleContentClick(clickEvent) {
+      const clickedAnchor = clickEvent.target.closest('a');
+      if (!clickedAnchor) return;
+
+      const href = clickedAnchor.getAttribute('href');
+      if (!href) return;
+
+      const slug = extractAnchorSlug(href);
+
+      if (slug) {
+        clickEvent.preventDefault();
+        scrollToHeading(slug);
+        return;
+      }
+
+      emit('external-link-click', { href, event: clickEvent });
+    }
+
     return {
+      previewContainerRef,
       resolvedEditorTheme,
+      handleContentClick,
     };
   },
 };
 </script>
 
 <style scoped>
+.markdown-preview-container {
+  width: 100%;
+}
+
 .markdown-preview-wrapper {
   width: 100%;
   background: transparent;
@@ -105,5 +167,9 @@ export default {
 .markdown-preview-wrapper :deep(.md-editor-preview em),
 .markdown-preview-wrapper :deep(.md-editor-preview span) {
   color: var(--foreground);
+}
+
+.markdown-preview-wrapper :deep(.md-editor-preview a) {
+  cursor: pointer;
 }
 </style>
