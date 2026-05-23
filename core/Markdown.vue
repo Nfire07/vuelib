@@ -195,6 +195,9 @@ export default {
   color: var(--primary) !important;
   cursor: pointer;
 }
+.markdown-preview-wrapper :deep(.md-editor-preview blockquote) {
+  border-left-color: var(--primary) !important;
+}
 
 
 .markdown-preview-wrapper :deep(.md-editor-preview a) {
