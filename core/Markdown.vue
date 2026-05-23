@@ -191,8 +191,9 @@ export default {
   color: var(--foreground);
 }
 .markdown-preview-wrapper :deep(.md-editor-preview a),
-.markdown-preview-wrapper :deep(.md-editor-preview a):hover {
-  color: var(--primary);
+.markdown-preview-wrapper :deep(.md-editor-preview a:hover) {
+  color: var(--primary) !important;
+  cursor: pointer;
 }
 
 
