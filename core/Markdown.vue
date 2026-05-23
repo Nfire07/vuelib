@@ -19,6 +19,7 @@
       :show-code-row-number="showLineNumbers"
       :no-mermaid="disableMermaid"
       :no-katex="disableMath"
+      :editor-id="previewEditorId"
       class="markdown-preview-wrapper"
     />
   </div>
@@ -72,6 +73,7 @@ export default {
     const genericStore = useGenericStore();
     const { theme: globalTheme } = storeToRefs(genericStore);
     const previewContainerRef = ref(null);
+    const previewEditorId = 'markdown-preview';
 
     /**
      * @desc Maps the global Pinia theme string to the MdPreview-compatible theme value.
@@ -82,7 +84,7 @@ export default {
     );
 
     /**
-     * @desc Extracts the anchor slug from an href, handling both bare (#slug) and absolute (http://…#slug) formats.
+     * @desc Extracts the raw hash fragment from an href string, stripping the leading '#'.
      * @param anchorHref {String}
      * @return {String|null}
      */
@@ -94,19 +96,31 @@ export default {
     }
 
     /**
-     * @desc Scrolls smoothly to the heading element whose id matches the given slug.
+     * @desc Finds a heading inside the preview container whose id ends with the given slug, then scrolls to it smoothly.
      * @param slug {String}
      * @return {Boolean}
      */
     function scrollToHeading(slug) {
-      const targetElement = document.getElementById(slug);
-      if (!targetElement) return false;
-      targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return true;
+      const container = previewContainerRef.value;
+      if (!container) return false;
+
+      const exactMatch = container.querySelector(`[id="${slug}"]`);
+      if (exactMatch) {
+        exactMatch.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return true;
+      }
+
+      const suffixMatch = container.querySelector(`[id$="-${slug}"]`);
+      if (suffixMatch) {
+        suffixMatch.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return true;
+      }
+
+      return false;
     }
 
     /**
-     * @desc Intercepts clicks inside the preview container, handling anchor links for in-page navigation and emitting external links.
+     * @desc Intercepts clicks inside the preview, handling hash anchor links for in-page navigation and emitting external ones.
      * @param clickEvent {MouseEvent}
      * @return {void}
      */
@@ -130,6 +144,7 @@ export default {
 
     return {
       previewContainerRef,
+      previewEditorId,
       resolvedEditorTheme,
       handleContentClick,
     };
