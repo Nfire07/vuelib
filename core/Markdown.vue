@@ -88,7 +88,7 @@ function stripFrontmatter(raw) {
 }
 
 function slugify(text) {
-  return text
+  return String(text || '')
     .toLowerCase()
     .replace(/\./g, '')
     .replace(/[^\w]+/g, '-')
@@ -101,7 +101,6 @@ function preprocessAnchorLinks(source) {
   })
 }
 
-// Fix automatico per i titoli scritti senza spazio (es: #Abstract -> # Abstract)
 function fixHeadingSpaces(source) {
   return source.replace(/^(#{1,6})(\S)/gm, '$1 $2')
 }
@@ -182,7 +181,6 @@ export default {
     },
 
     parsedSource() {
-      // Pulisce, sistema i titoli uniti e mappa gli anchor link
       return preprocessAnchorLinks(fixHeadingSpaces(stripFrontmatter(this.modelValue || '')))
     },
 
@@ -196,9 +194,18 @@ export default {
 
         const renderer = new this.markedInstance.Renderer()
 
-        // Marked v12: Tutti i metodi ricevono un singolo oggetto destrutturato
-        renderer.code = function({ text, lang }) {
-          const code    = String(text)
+        // Approccio Ibrido/Polimorfico: Accetta sia Oggetti (v12+) sia argomenti posizionali (v11-)
+        renderer.code = function(...args) {
+          let text, lang;
+          if (args[0] && typeof args[0] === 'object') {
+            text = args[0].text;
+            lang = args[0].lang;
+          } else {
+            text = args[0];
+            lang = args[1];
+          }
+
+          const code    = String(text || '')
           const langStr = typeof lang === 'string' ? lang : ''
           const validLang = langStr && this.hlInstance?.getLanguage(langStr) ? langStr : null
           let highlighted
@@ -232,7 +239,18 @@ export default {
           return `<div class="md-code-block">${header}<pre class="md-pre${validLang ? ` language-${langStr}` : ''}"><code class="md-code${validLang ? ` hljs language-${validLang}` : ''}">${highlighted}</code></pre></div>`
         }.bind(this)
 
-        renderer.link = ({ href, title, text }) => {
+        renderer.link = function(...args) {
+          let href, title, text;
+          if (args[0] && typeof args[0] === 'object') {
+            href = args[0].href;
+            title = args[0].title;
+            text = args[0].text;
+          } else {
+            href = args[0];
+            title = args[1];
+            text = args[2];
+          }
+
           const titleAttr = title ? ` title="${escapeHtml(title)}"` : ''
           if (href && href.startsWith('#')) {
             return `<a href="${href}"${titleAttr} class="md-link md-link--anchor">${text}</a>`
@@ -240,21 +258,41 @@ export default {
           const target = this.linkTarget ? ` target="${this.linkTarget}"` : ''
           const rel    = this.linkRel    ? ` rel="${this.linkRel}"`       : ''
           return `<a href="${href}"${titleAttr}${target}${rel} class="md-link">${text}</a>`
-        }
+        }.bind(this)
 
-        renderer.heading = ({ text, level }) => {
+        renderer.heading = function(...args) {
+          let text, level;
+          if (args[0] && typeof args[0] === 'object') {
+            text = args[0].text;
+            level = args[0].depth || args[0].level;
+          } else {
+            text = args[0];
+            level = args[1];
+          }
+
           const slug   = `${this.headingPrefix}${slugify(text)}`
           const anchor = this.headingIds
             ? `<a class="md-anchor" href="#${slug}" aria-hidden="true">#</a>`
             : ''
           return `<h${level} id="${slug}" class="md-heading md-h${level}">${anchor}${text}</h${level}>`
-        }
+        }.bind(this)
 
-        renderer.image = ({ href, title, text }) => {
+        renderer.image = function(...args) {
+          let href, title, text;
+          if (args[0] && typeof args[0] === 'object') {
+            href = args[0].href;
+            title = args[0].title;
+            text = args[0].text;
+          } else {
+            href = args[0];
+            title = args[1];
+            text = args[2];
+          }
+
           const t = title ? ` title="${escapeHtml(title)}"` : ''
           const a = text  ? ` alt="${escapeHtml(text)}"`    : ''
           return `<figure class="md-figure"><img src="${href}"${a}${t} class="md-img" loading="lazy" />${text ? `<figcaption class="md-caption">${escapeHtml(text)}</figcaption>` : ''}</figure>`
-        }
+        }.bind(this)
 
         this.markedInstance.setOptions({ breaks: this.breaks, gfm: this.gfm, renderer })
         let html = this.markedInstance.parse(source)
@@ -346,7 +384,7 @@ export default {
 
       const anchorButton = e.target.closest('.md-anchor-btn')
       if (anchorButton) {
-        const targetId      = anchorButton.dataset.anchor
+        const targetId = anchorButton.dataset.anchor
         const targetElement = document.getElementById(targetId)
         if (targetElement) {
           targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -357,7 +395,7 @@ export default {
       const anchorLink = e.target.closest('.md-link--anchor')
       if (anchorLink) {
         e.preventDefault()
-        const targetId      = anchorLink.getAttribute('href').slice(1)
+        const targetId = anchorLink.getAttribute('href').slice(1)
         const targetElement = document.getElementById(targetId)
         if (targetElement) {
           targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
