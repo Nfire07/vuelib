@@ -49,11 +49,6 @@ const loadedStyles  = {}
 const FRONTMATTER_PATTERN  = /^---\s*\n([\s\S]*?)\n---\s*\n?/
 const ANCHOR_LINK_PATTERN  = /\[([^\]]+)\]\(__#([^)]+)__\)/g
 
-/**
- * @param src String
- * @return Promise
- * @desc Fetches external script as text and injects it inline to avoid MIME type sniff blocks.
- */
 function loadScript(src) {
   if (loadedScripts[src]) return loadedScripts[src]
   loadedScripts[src] = fetch(src)
@@ -69,11 +64,6 @@ function loadScript(src) {
   return loadedScripts[src]
 }
 
-/**
- * @param href String
- * @return void
- * @desc Loads external stylesheet and caches it to avoid duplicates.
- */
 function loadStyle(href) {
   if (loadedStyles[href]) return
   loadedStyles[href] = true
@@ -84,11 +74,6 @@ function loadStyle(href) {
   document.head.appendChild(el)
 }
 
-/**
- * @param str String
- * @return String
- * @desc Escapes HTML special characters to prevent XSS injection.
- */
 function escapeHtml(str) {
   return str
     .replace(/&/g, '&amp;')
@@ -98,20 +83,10 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;')
 }
 
-/**
- * @param raw String
- * @return String
- * @desc Strips YAML frontmatter block from the top of a markdown string.
- */
 function stripFrontmatter(raw) {
   return raw.replace(FRONTMATTER_PATTERN, '')
 }
 
-/**
- * @param text String
- * @return String
- * @desc Converts heading text to a URL slug matching the __#slug__ TOC format, stripping dots.
- */
 function slugify(text) {
   return text
     .toLowerCase()
@@ -120,55 +95,28 @@ function slugify(text) {
     .replace(/^-+|-+$/g, '')
 }
 
-/**
- * @param source String
- * @return String
- * @desc Replaces [text](__#slug__) occurrences with button HTML before markdown parsing.
- */
 function preprocessAnchorLinks(source) {
   return source.replace(ANCHOR_LINK_PATTERN, (match, text, slug) => {
     return `<button type="button" data-anchor="${slug}" class="md-anchor-btn">${text}</button>`
   })
 }
 
-/**
- * @param source String
- * @return { source: String, blocks: Array<{ expr: String, display: Boolean }> }
- * @desc Extracts and escapes math expressions before markdown parsing to prevent
- *       marked from mangling LaTeX syntax (e.g. underscores, backslashes).
- *       Display math  $$…$$  and inline math  $…$  are replaced with
- *       placeholder tokens that are restored after rendering.
- */
+// Fix automatico per i titoli scritti senza spazio (es: #Abstract -> # Abstract)
+function fixHeadingSpaces(source) {
+  return source.replace(/^(#{1,6})(\S)/gm, '$1 $2')
+}
+
 function extractMath(source) {
   const blocks = []
-
-  /**
-   * @param expr String
-   * @param display Boolean
-   * @return String
-   * @desc Stores a math expression and returns a unique placeholder token.
-   */
   function store(expr, display) {
     const idx = blocks.push({ expr, display }) - 1
     return `@@MATH${idx}@@`
   }
-
-  // Display math: $$...$$
   source = source.replace(/\$\$([\s\S]+?)\$\$/g, (_, expr) => store(expr, true))
-
-  // Inline math: $...$ — skip $$ by requiring no adjacent $
   source = source.replace(/(?<!\$)\$(?!\$)((?:[^$\n]|\\.)+?)\$(?!\$)/g, (_, expr) => store(expr, false))
-
   return { source, blocks }
 }
 
-/**
- * @param html String
- * @param blocks Array<{ expr: String, display: Boolean }>
- * @param katex Object
- * @return String
- * @desc Replaces @@MATHn@@ placeholders in the rendered HTML with KaTeX output.
- */
 function restoreMath(html, blocks, katex) {
   return html.replace(/@@MATH(\d+)@@/g, (_, idx) => {
     const { expr, display } = blocks[Number(idx)]
@@ -188,123 +136,29 @@ export default {
   name: 'Markdown',
 
   props: {
-    modelValue: {
-      type: String,
-      default: '',
-    },
-
-    tag: {
-      type: String,
-      default: 'div',
-    },
-
-    variant: {
-      type: String,
-      default: 'default',
-      validator: (v) => ['default', 'minimal', 'docs', 'blog', 'chat'].includes(v),
-    },
-
-    prose: {
-      type: Boolean,
-      default: true,
-    },
-
-    breaks: {
-      type: Boolean,
-      default: true,
-    },
-
-    gfm: {
-      type: Boolean,
-      default: true,
-    },
-
-    highlight: {
-      type: Boolean,
-      default: true,
-    },
-
-    highlightTheme: {
-      type: String,
-      default: 'auto',
-      validator: (v) => ['auto', 'github', 'githubDark', 'atomOneDark', 'atomOneLight', 'nord', 'monokai', 'dracula', 'vitesse'].includes(v),
-    },
-
-    showCopyButton: {
-      type: Boolean,
-      default: true,
-    },
-
-    showLanguageLabel: {
-      type: Boolean,
-      default: true,
-    },
-
-    lineNumbers: {
-      type: Boolean,
-      default: false,
-    },
-
-    linkTarget: {
-      type: String,
-      default: '_blank',
-      validator: (v) => ['_blank', '_self', '_parent', '_top', ''].includes(v),
-    },
-
-    linkRel: {
-      type: String,
-      default: 'noopener noreferrer',
-    },
-
-    headingIds: {
-      type: Boolean,
-      default: true,
-    },
-
-    headingPrefix: {
-      type: String,
-      default: '',
-    },
-
-    math: {
-      type: Boolean,
-      default: true,
-    },
-
-    compact: {
-      type: Boolean,
-      default: false,
-    },
-
-    noMargin: {
-      type: Boolean,
-      default: false,
-    },
-
-    fontSize: {
-      type: String,
-      default: null,
-    },
-
-    maxWidth: {
-      type: String,
-      default: null,
-    },
-
-    customStyles: {
-      type: Object,
-      default: null,
-    },
-
-    copyLabel: {
-      type: String,
-      default: 'Copy',
-    },
-
-    copiedLabel: {
-      type: String,
-      default: 'Copied!',
-    },
+    modelValue: { type: String, default: '' },
+    tag: { type: String, default: 'div' },
+    variant: { type: String, default: 'default', validator: (v) => ['default', 'minimal', 'docs', 'blog', 'chat'].includes(v) },
+    prose: { type: Boolean, default: true },
+    breaks: { type: Boolean, default: true },
+    gfm: { type: Boolean, default: true },
+    highlight: { type: Boolean, default: true },
+    highlightTheme: { type: String, default: 'auto', validator: (v) => ['auto', 'github', 'githubDark', 'atomOneDark', 'atomOneLight', 'nord', 'monokai', 'dracula', 'vitesse'].includes(v) },
+    showCopyButton: { type: Boolean, default: true },
+    showLanguageLabel: { type: Boolean, default: true },
+    lineNumbers: { type: Boolean, default: false },
+    linkTarget: { type: String, default: '_blank', validator: (v) => ['_blank', '_self', '_parent', '_top', ''].includes(v) },
+    linkRel: { type: String, default: 'noopener noreferrer' },
+    headingIds: { type: Boolean, default: true },
+    headingPrefix: { type: String, default: '' },
+    math: { type: Boolean, default: true },
+    compact: { type: Boolean, default: false },
+    noMargin: { type: Boolean, default: false },
+    fontSize: { type: String, default: null },
+    maxWidth: { type: String, default: null },
+    customStyles: { type: Object, default: null },
+    copyLabel: { type: String, default: 'Copy' },
+    copiedLabel: { type: String, default: 'Copied!' },
   },
 
   emits: ['loaded', 'error', 'link-click'],
@@ -322,52 +176,27 @@ export default {
   computed: {
     ...mapState(useGenericStore, ['language', 'theme']),
 
-    /**
-     * @param void
-     * @return String
-     * @desc Resolves highlight theme based on prop or current app theme.
-     */
     resolvedTheme() {
       if (this.highlightTheme !== 'auto') return this.highlightTheme
       return this.theme === 'dark' ? 'atomOneDark' : 'github'
     },
 
-    /**
-     * @param void
-     * @return String
-     * @desc Returns the preprocessed source: frontmatter stripped, math extracted,
-     *       and anchor links converted to button elements.
-     */
     parsedSource() {
-      return preprocessAnchorLinks(stripFrontmatter(this.modelValue || ''))
+      // Pulisce, sistema i titoli uniti e mappa gli anchor link
+      return preprocessAnchorLinks(fixHeadingSpaces(stripFrontmatter(this.modelValue || '')))
     },
 
-    /**
-     * @param void
-     * @return String
-     * @desc Renders markdown to HTML using marked and highlight.js.
-     *       Depends on isLoaded so Vue re-evaluates this computed after all CDN
-     *       libraries finish loading and katexInstance / hlInstance are populated.
-     *       When math is enabled, LaTeX expressions are extracted before parsing
-     *       and restored as KaTeX HTML afterwards.
-     *       marked v12 passes a token object { text, lang } to renderer.code
-     *       instead of positional (code, lang) arguments — destructure accordingly.
-     */
     renderedContent() {
-      // isLoaded referenced explicitly so Vue tracks it as a reactive dependency
-      // and re-runs this computed once all CDN libraries are ready
       if (!this.parsedSource || !this.markedInstance || !this.isLoaded) return ''
 
       try {
-        // Extract math before marked touches the source to protect LaTeX syntax
         const { source, blocks } = (this.math && this.katexInstance)
           ? extractMath(this.parsedSource)
           : { source: this.parsedSource, blocks: [] }
 
         const renderer = new this.markedInstance.Renderer()
 
-        // marked v12 changed renderer.code to receive a single token object
-        // { text, lang, escaped } instead of positional (code, lang, escaped)
+        // Marked v12: Tutti i metodi ricevono un singolo oggetto destrutturato
         renderer.code = function({ text, lang }) {
           const code    = String(text)
           const langStr = typeof lang === 'string' ? lang : ''
@@ -403,7 +232,7 @@ export default {
           return `<div class="md-code-block">${header}<pre class="md-pre${validLang ? ` language-${langStr}` : ''}"><code class="md-code${validLang ? ` hljs language-${validLang}` : ''}">${highlighted}</code></pre></div>`
         }.bind(this)
 
-        renderer.link = (href, title, text) => {
+        renderer.link = ({ href, title, text }) => {
           const titleAttr = title ? ` title="${escapeHtml(title)}"` : ''
           if (href && href.startsWith('#')) {
             return `<a href="${href}"${titleAttr} class="md-link md-link--anchor">${text}</a>`
@@ -413,7 +242,7 @@ export default {
           return `<a href="${href}"${titleAttr}${target}${rel} class="md-link">${text}</a>`
         }
 
-        renderer.heading = (text, level) => {
+        renderer.heading = ({ text, level }) => {
           const slug   = `${this.headingPrefix}${slugify(text)}`
           const anchor = this.headingIds
             ? `<a class="md-anchor" href="#${slug}" aria-hidden="true">#</a>`
@@ -421,7 +250,7 @@ export default {
           return `<h${level} id="${slug}" class="md-heading md-h${level}">${anchor}${text}</h${level}>`
         }
 
-        renderer.image = (href, title, text) => {
+        renderer.image = ({ href, title, text }) => {
           const t = title ? ` title="${escapeHtml(title)}"` : ''
           const a = text  ? ` alt="${escapeHtml(text)}"`    : ''
           return `<figure class="md-figure"><img src="${href}"${a}${t} class="md-img" loading="lazy" />${text ? `<figcaption class="md-caption">${escapeHtml(text)}</figcaption>` : ''}</figure>`
@@ -430,7 +259,6 @@ export default {
         this.markedInstance.setOptions({ breaks: this.breaks, gfm: this.gfm, renderer })
         let html = this.markedInstance.parse(source)
 
-        // Restore math placeholders with KaTeX-rendered HTML
         if (blocks.length) {
           html = restoreMath(html, blocks, this.katexInstance)
         }
@@ -443,11 +271,6 @@ export default {
       }
     },
 
-    /**
-     * @param void
-     * @return Object
-     * @desc Computes inline style object for the content wrapper element.
-     */
     contentStyle() {
       const style = {}
       if (this.fontSize) style.fontSize = this.fontSize
@@ -473,7 +296,6 @@ export default {
       }
 
       this.applyHighlightTheme()
-      // Set last so renderedContent re-evaluates only once all instances are assigned
       this.isLoaded = true
       this.$emit('loaded')
     } catch (e) {
@@ -492,7 +314,6 @@ export default {
     resolvedTheme() {
       this.applyHighlightTheme()
     },
-
     modelValue() {
       if (this.markedInstance && !this.isLoaded) {
         this.isLoaded = true
@@ -501,22 +322,12 @@ export default {
   },
 
   methods: {
-    /**
-     * @param void
-     * @return void
-     * @desc Applies the resolved highlight.js theme stylesheet to the document.
-     */
     applyHighlightTheme() {
       if (!this.highlight) return
       const href = CSS[this.resolvedTheme]
       if (href) loadStyle(href)
     },
 
-    /**
-     * @param e Event
-     * @return void
-     * @desc Handles clicks for copy buttons, anchor links, and external markdown links.
-     */
     handleClick(e) {
       const copyButton = e.target.closest('.md-copy-btn')
       if (copyButton) {
