@@ -83,5 +83,6 @@ export default {
 .markdown-preview-wrapper {
   width: 100%;
   background: transparent;
+  color:var(--foreground);
 }
 </style>
