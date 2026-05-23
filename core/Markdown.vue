@@ -83,6 +83,27 @@ export default {
 .markdown-preview-wrapper {
   width: 100%;
   background: transparent;
-  color:var(--foreground);
+}
+
+.markdown-preview-wrapper :deep(.md-editor-preview-wrapper),
+.markdown-preview-wrapper :deep(.md-editor-preview) {
+  background: transparent;
+}
+
+.markdown-preview-wrapper :deep(.md-editor-preview p),
+.markdown-preview-wrapper :deep(.md-editor-preview h1),
+.markdown-preview-wrapper :deep(.md-editor-preview h2),
+.markdown-preview-wrapper :deep(.md-editor-preview h3),
+.markdown-preview-wrapper :deep(.md-editor-preview h4),
+.markdown-preview-wrapper :deep(.md-editor-preview h5),
+.markdown-preview-wrapper :deep(.md-editor-preview h6),
+.markdown-preview-wrapper :deep(.md-editor-preview li),
+.markdown-preview-wrapper :deep(.md-editor-preview td),
+.markdown-preview-wrapper :deep(.md-editor-preview th),
+.markdown-preview-wrapper :deep(.md-editor-preview blockquote),
+.markdown-preview-wrapper :deep(.md-editor-preview strong),
+.markdown-preview-wrapper :deep(.md-editor-preview em),
+.markdown-preview-wrapper :deep(.md-editor-preview span) {
+  color: var(--foreground);
 }
 </style>
