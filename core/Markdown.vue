@@ -19,7 +19,6 @@
       :show-code-row-number="showLineNumbers"
       :no-mermaid="disableMermaid"
       :no-katex="disableMath"
-      :editor-id="previewEditorId"
       class="markdown-preview-wrapper"
     />
   </div>
@@ -73,7 +72,6 @@ export default {
     const genericStore = useGenericStore();
     const { theme: globalTheme } = storeToRefs(genericStore);
     const previewContainerRef = ref(null);
-    const previewEditorId = 'markdown-preview';
 
     /**
      * @desc Maps the global Pinia theme string to the MdPreview-compatible theme value.
@@ -84,6 +82,36 @@ export default {
     );
 
     /**
+     * @desc Converts a raw string into a lowercase hyphenated slug, matching the same logic md-editor-v3 uses for heading IDs.
+     * @param rawText {String}
+     * @return {String}
+     */
+    function slugifyHeadingText(rawText) {
+      return rawText
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w-]/g, '');
+    }
+
+    /**
+     * @desc Searches all headings inside the preview container and returns the first one whose slugified text matches the given slug.
+     * @param slug {String}
+     * @return {Element|null}
+     */
+    function findHeadingBySlug(slug) {
+      const container = previewContainerRef.value;
+      if (!container) return null;
+
+      const allHeadings = Array.from(container.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+
+      return allHeadings.find((headingElement) => {
+        const headingSlug = slugifyHeadingText(headingElement.textContent);
+        return headingSlug === slug;
+      }) ?? null;
+    }
+
+    /**
      * @desc Extracts the raw hash fragment from an href string, stripping the leading '#'.
      * @param anchorHref {String}
      * @return {String|null}
@@ -92,35 +120,11 @@ export default {
       if (!anchorHref) return null;
       const hashIndex = anchorHref.indexOf('#');
       if (hashIndex === -1) return null;
-      return anchorHref.slice(hashIndex + 1) || null;
+      return decodeURIComponent(anchorHref.slice(hashIndex + 1)) || null;
     }
 
     /**
-     * @desc Finds a heading inside the preview container whose id ends with the given slug, then scrolls to it smoothly.
-     * @param slug {String}
-     * @return {Boolean}
-     */
-    function scrollToHeading(slug) {
-      const container = previewContainerRef.value;
-      if (!container) return false;
-
-      const exactMatch = container.querySelector(`[id="${slug}"]`);
-      if (exactMatch) {
-        exactMatch.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return true;
-      }
-
-      const suffixMatch = container.querySelector(`[id$="-${slug}"]`);
-      if (suffixMatch) {
-        suffixMatch.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return true;
-      }
-
-      return false;
-    }
-
-    /**
-     * @desc Intercepts clicks inside the preview, handling hash anchor links for in-page navigation and emitting external ones.
+     * @desc Intercepts clicks inside the preview, scrolling to the matched heading for hash links and emitting external ones.
      * @param clickEvent {MouseEvent}
      * @return {void}
      */
@@ -135,7 +139,11 @@ export default {
 
       if (slug) {
         clickEvent.preventDefault();
-        scrollToHeading(slug);
+
+        const matchedHeading = findHeadingBySlug(slug);
+        if (matchedHeading) {
+          matchedHeading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
         return;
       }
 
@@ -144,7 +152,6 @@ export default {
 
     return {
       previewContainerRef,
-      previewEditorId,
       resolvedEditorTheme,
       handleContentClick,
     };
