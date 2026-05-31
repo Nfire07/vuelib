@@ -327,21 +327,15 @@ export default {
   },
 
   watch: {
-    chartData: {
-      deep: true,
-      handler() {
-        this.updateChart()
-      },
+    chartData() {
+      this.updateChart()
     },
     type() {
       this.destroyChart()
       this.initChart()
     },
-    chartOptions: {
-      deep: true,
-      handler() {
-        this.updateChart()
-      },
+    chartOptions() {
+      this.updateChart()
     },
   },
 
@@ -359,20 +353,29 @@ export default {
   },
 
   methods: {
+    /**
+     * @param value Any
+     * @return Any
+     * @desc Deep clones a value to break Vue reactivity proxies before passing to Chart.js
+     */
+    deepClone(value) {
+      return JSON.parse(JSON.stringify(value))
+    },
+
     initChart() {
       if (!window.Chart || !this.$refs.canvas) return
       const ctx = this.$refs.canvas.getContext('2d')
       this.chart = new window.Chart(ctx, {
         type: this.type,
-        data: this.chartData,
-        options: this.chartOptions,
+        data: this.deepClone(this.chartData),
+        options: this.deepClone(this.chartOptions),
       })
     },
 
     updateChart() {
       if (!this.chart) return
-      this.chart.data = this.chartData
-      this.chart.options = this.chartOptions
+      this.chart.data = this.deepClone(this.chartData)
+      this.chart.options = this.deepClone(this.chartOptions)
       this.chart.update()
     },
 
