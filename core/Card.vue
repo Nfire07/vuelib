@@ -38,7 +38,14 @@
           class="card__item"
           @click.stop="handleItemClick(item)"
         >
-          {{ getItemLabel(item) }}
+          <slot name="item" :item="item">
+            <div class="card__item-header">
+              <span class="card__item-title">{{ getItemLabel(item) }}</span>
+              <span v-if="itemMeta" class="card__item-meta">{{ getItemField(item, itemMeta) }}</span>
+            </div>
+            <div v-if="itemSubtitle" class="card__item-subtitle">{{ getItemField(item, itemSubtitle) }}</div>
+            <div v-if="itemDetail" class="card__item-detail">{{ getItemField(item, itemDetail) }}</div>
+          </slot>
         </div>
       </div>
       
@@ -167,6 +174,18 @@ export default {
       type: String,
       default: 'label',
     },
+    itemMeta: {
+      type: String,
+      default: null,
+    },
+    itemSubtitle: {
+      type: String,
+      default: null,
+    },
+    itemDetail: {
+      type: String,
+      default: null,
+    },
   },
 
   emits: ['click', 'item-click'],
@@ -272,6 +291,16 @@ export default {
      */
     getItemLabel(item) {
       return item[this.itemLabel] || item.label || item.name || 'Item'
+    },
+
+    /**
+     * @param item Object The item to get the field value from
+     * @param field string The field name to extract
+     * @return The field value or empty string
+     * @desc Extracts a field value from an item object
+     */
+    getItemField(item, field) {
+      return item[field] ?? ''
     },
   },
 }
@@ -381,10 +410,52 @@ export default {
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.2s ease;
+  text-align: left;
 }
 
 .card__item:hover {
   background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.card__item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.card__item-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card__item-meta {
+  font-size: 0.72rem;
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.card__item-subtitle {
+  font-size: 0.82rem;
+  color: color-mix(in srgb, var(--foreground) 80%, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 1px;
+}
+
+.card__item-detail {
+  font-size: 0.75rem;
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card__footer {
