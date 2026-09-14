@@ -125,6 +125,8 @@
           optionValue="value"
           :placeholder="field.placeholder || lang.dynamicform.selectOptions"
           :maxSelectedLabels="field.maxSelectedLabels || 3"
+          :filter="field.filter !== false"
+          :filterPlaceholder="field.filterPlaceholder || lang.dynamicform.searchOptions"
           class="custom-input custom-dropdown"
           @change="validateField(field)"
         />
