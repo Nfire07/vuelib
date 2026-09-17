@@ -1,6 +1,6 @@
 /*
  * Author: Mele Nicolo' Emanuele
- * Date: 2026-05-04
+ * Date: September 17, 2026
  * License: MIT
  * Description: Calendar component with month navigation, event display, and task management
  */
@@ -35,9 +35,10 @@
         </div>
         <div v-if="day.date && getEventsForDay(day.date).length > 0" class="event-dots">
           <span
-            v-for="(_, i) in getEventsForDay(day.date).slice(0, 3)"
-            :key="i"
+            v-for="(dayEvent, eventIndex) in getEventsForDay(day.date).slice(0, 3)"
+            :key="eventIndex"
             class="event-dot"
+            :class="{ 'event-dot--google': isGoogleEvent(dayEvent) }"
           ></span>
         </div>
       </div>
@@ -62,12 +63,19 @@
                   <div class="event-info">
                     <span class="event-title">{{ event.name || event.title }}</span>
                     <span v-if="event.time" class="event-time">{{ formatTime(event.time) }}</span>
+                    <span v-if="event.location" class="event-location">
+                      <span class="material-icons event-location-icon">place</span>
+                      {{ event.location }}
+                    </span>
                     <span v-if="event.description" class="event-description">{{ event.description }}</span>
                   </div>
-                 <button class="event-delete" @click="deleteEvent(event)" :aria-label="lang.calendar.deleteTask">
-                   <span class="material-icons">delete</span>
-                 </button>
-               </div>
+                  <span v-if="isGoogleEvent(event)" class="event-badge">
+                    {{ lang.calendar.googleBadge }}
+                  </span>
+                  <button class="event-delete" @click="deleteEvent(event)" :aria-label="lang.calendar.deleteTask">
+                    <span class="material-icons">delete</span>
+                  </button>
+                </div>
              </div>
             <div v-else class="no-events">
               <span class="material-icons no-events-icon">event_available</span>
@@ -105,7 +113,7 @@ export default {
   components: {
     DynamicForm,
   },
-  emits: ["submit-form", "on-delete"],
+  emits: ["submit-form", "on-delete", "month-change"],
 
   data() {
     return {
@@ -233,19 +241,21 @@ export default {
     /**
      * @param void
      * @return void
-     * @desc Navigates to previous month
+     * @desc Navigates to previous month and notifies the parent view
      */
     prevMonth() {
       this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() - 1, 1);
+      this.$emit("month-change", this.currentDate);
     },
 
     /**
      * @param void
      * @return void
-     * @desc Navigates to next monthicon-label="VueLib"
+     * @desc Navigates to next month and notifies the parent view
      */
     nextMonth() {
       this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 1);
+      this.$emit("month-change", this.currentDate);
     },
 
     /**
@@ -267,6 +277,15 @@ export default {
       if (!date) return [];
       const dateStr = this.formatDate(date);
       return this.events.filter((e) => e.date === dateStr);
+    },
+
+    /**
+     * @param event Object Event object with source information
+     * @return Boolean
+     * @desc Flags events that originate from the Google Calendar API
+     */
+    isGoogleEvent(event) {
+      return Boolean(event) && (event._source === 'google' || event.isGoogle === true);
     },
 
     /**
@@ -436,6 +455,10 @@ export default {
   background: var(--primary);
 }
 
+.event-dot--google {
+  background: #4285F4;
+}
+
 .nav-btn {
   width: 40px;
   height: 40px;
@@ -582,6 +605,34 @@ export default {
   font-size: 0.8rem;
   color: color-mix(in srgb, var(--foreground) 65%, transparent);
   margin-top: 2px;
+}
+
+.event-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: color-mix(in srgb, var(--foreground) 55%, transparent);
+}
+
+.event-location-icon {
+  font-size: 14px;
+}
+
+.event-badge {
+  align-self: center;
+  flex-shrink: 0;
+  margin-left: 10px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #4285F4;
+  background: color-mix(in srgb, #4285F4 12%, transparent);
+  border: 1px solid color-mix(in srgb, #4285F4 35%, transparent);
+  border-radius: 999px;
+  padding: 3px 8px;
+  white-space: nowrap;
 }
 
 .event-delete {
