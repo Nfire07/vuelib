@@ -113,7 +113,12 @@
             @option-select="onSearchableSelect($event, field)"
             @clear="onSearchableClear(field)"
             @blur="validateField(field)"
-          />
+          >
+            <template v-if="field.iconOptions" #option="slotProps">
+              <span class="material-icons-round option-item-icon">{{ slotProps.option.value }}</span>
+              <span class="option-item-label">{{ slotProps.option.label }}</span>
+            </template>
+          </AutoComplete>
         </div>
 
         <MultiSelect
@@ -489,9 +494,13 @@ export default {
     filterSearchableOptions(event, field) {
       const query = (event.query || '').toLowerCase().trim();
       const options = field.options || [];
-      this.searchableSuggestions[field.name] = query
+      let suggestions = query
         ? options.filter(o => o.label.toLowerCase().includes(query))
         : [...options];
+      if (field.maxSuggestions) {
+        suggestions = suggestions.slice(0, field.maxSuggestions);
+      }
+      this.searchableSuggestions[field.name] = suggestions;
     },
 
     /**
@@ -849,12 +858,21 @@ export default {
 }
 
 :deep(.p-autocomplete-option) {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   padding: 0.6rem 0.9rem;
   font-size: 0.9rem;
   font-family: inherit;
   color: var(--foreground);
   cursor: pointer;
   transition: background 0.15s;
+}
+
+:deep(.material-icons-round.option-item-icon) {
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  color: var(--secondary);
 }
 
 :deep(.p-autocomplete-option:hover),
