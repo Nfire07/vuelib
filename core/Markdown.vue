@@ -19,6 +19,7 @@
       :show-code-row-number="showLineNumbers"
       :no-mermaid="disableMermaid"
       :no-katex="disableMath"
+      :code-style-reverse="false"
       class="markdown-preview-wrapper"
     />
   </div>
