@@ -123,11 +123,12 @@ export default {
   text-shadow: 2px 2px #020202;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  transition: opacity 0.3s ease 0.15s;
+  transition: opacity 0.3s ease 0.15s, color 0.2s ease;
 }
 
 .icon-slot:hover .icon-label {
   opacity: 1;
+  color: var(--secondary);
 }
 
 .link-slot {
@@ -151,7 +152,7 @@ export default {
 .nav-link span {
   white-space: nowrap;
   transform: rotate(-90deg);
-  transition: transform 0.4s ease-in-out;
+  transition: transform 0.4s ease-in-out, color 0.2s ease-in-out;
   text-transform: uppercase;
   font-weight: 800;
   color:#fefefe;
@@ -162,6 +163,7 @@ export default {
 
 .link-slot:hover .nav-link span {
   transform: rotate(0deg);
+  color: var(--secondary);
 }
 
 @media (max-width: 600px) {

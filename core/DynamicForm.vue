@@ -1175,8 +1175,8 @@ export default {
 :deep(.submit-btn) {
   grid-column: 1 / -1;
   width: 100%;
-  background: color-mix(in srgb, hsl(from var(--primary) h s calc(l / 2)) 70%, transparent);
-  border-color: var(--primary);
+  background: color-mix(in srgb, hsl(from var(--secondary) h s calc(l / 2)) 70%, transparent);
+  border-color: var(--secondary);
   color: #e2e4ff;
   text-shadow: 0 4px 12px rgba(0, 0, 0, 0.542);
   padding: 0.85rem;
@@ -1201,8 +1201,8 @@ export default {
 :deep(.submit-btn:hover:not(:disabled)) {
   opacity: 0.92;
   color: #e2e4ff;
-  background: var(--primary) !important;
-  border-color: var(--primary) !important;
+  background: var(--secondary) !important;
+  border-color: var(--secondary) !important;
 }
 
 :deep(.submit-btn:active:not(:disabled)) {

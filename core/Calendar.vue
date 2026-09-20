@@ -422,11 +422,11 @@ export default {
 }
 
 .day--active {
-  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  background: color-mix(in srgb, var(--secondary) 8%, transparent);
 }
 
 .day--active:hover {
-  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  background: color-mix(in srgb, var(--secondary) 15%, transparent);
 }
 
 .today-wrapper {
@@ -436,8 +436,8 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--primary);
-  color: var(--foreground);
+  background: var(--secondary);
+  color: var(--background);
   font-weight: 700;
   font-size: 0.9rem;
 }
@@ -452,7 +452,7 @@ export default {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--primary);
+  background: var(--secondary);
 }
 
 .event-dot--google {
@@ -580,7 +580,7 @@ export default {
   padding: 12px 14px;
   background: color-mix(in srgb, var(--foreground) 6%, transparent);
   border-radius: 10px;
-  border-left: 3px solid var(--primary);
+  border-left: 3px solid var(--secondary);
 }
 
 .event-info {
@@ -597,7 +597,7 @@ export default {
 
 .event-time {
   font-size: 0.78rem;
-  color: var(--primary);
+  color: var(--secondary);
   font-weight: 500;
 }
 

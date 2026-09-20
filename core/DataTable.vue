@@ -679,7 +679,7 @@ export default {
 }
 
 .th--sorted .th-inner {
-  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  background: color-mix(in srgb, var(--secondary) 8%, transparent);
 }
 
 .th-inner {
@@ -699,7 +699,7 @@ export default {
 }
 
 .th--sorted .th-label {
-  color: var(--primary);
+  color: var(--secondary);
 }
 
 .sort-icon {
@@ -709,7 +709,7 @@ export default {
 }
 
 .sort-icon--active {
-  color: var(--primary);
+  color: var(--secondary);
 }
 
 .th-filter {
@@ -750,7 +750,7 @@ export default {
 }
 
 .tr:hover {
-  background: color-mix(in srgb, var(--primary) 5%, transparent);
+  background: color-mix(in srgb, var(--secondary) 5%, transparent);
 }
 
 .tr--even {
@@ -758,7 +758,7 @@ export default {
 }
 
 .tr--even:hover {
-  background: color-mix(in srgb, var(--primary) 5%, transparent);
+  background: color-mix(in srgb, var(--secondary) 5%, transparent);
 }
 
 .td {

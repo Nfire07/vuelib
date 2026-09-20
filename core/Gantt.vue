@@ -626,7 +626,7 @@ export default {
 }
 
 .gantt-col-header.col--today {
-  background: color-mix(in srgb, var(--primary, #ED202F) 10%, transparent);
+  background: color-mix(in srgb, var(--secondary, #e879f9) 10%, transparent);
 }
 
 .col-day-name {
@@ -644,7 +644,7 @@ export default {
 }
 
 .col--today .col-day-num {
-  color: var(--primary, #ED202F);
+  color: var(--secondary, #e879f9);
 }
 
 .col--weekend .col-day-num {
@@ -710,7 +710,7 @@ export default {
 }
 
 .gantt-cell.cell--today {
-  background: color-mix(in srgb, var(--primary, #ED202F) 6%, transparent);
+  background: color-mix(in srgb, var(--secondary, #e879f9) 6%, transparent);
 }
 
 .gantt-bar {
@@ -757,7 +757,7 @@ export default {
   top: 0;
   bottom: 0;
   width: 2px;
-  background: var(--primary, #ED202F);
+  background: var(--secondary, #e879f9);
   opacity: 0.7;
   pointer-events: none;
   z-index: 5;
@@ -772,7 +772,7 @@ export default {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--primary, #ED202F);
+  background: var(--secondary, #e879f9);
 }
 
 .gantt-tooltip {

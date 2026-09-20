@@ -180,10 +180,10 @@ export default {
     resolvedColors() {
       if (this.colors.length) return this.colors
       const primary = getCssVar('--primary') || '#ED202F'
-      const foreground = getCssVar('--foreground') || '#1a1a1a'
+      const secondary = getCssVar('--secondary') || '#c026d3'
       const base = [
         primary,
-        foreground,
+        secondary,
         '#4e9af1',
         '#f4a261',
         '#2a9d8f',

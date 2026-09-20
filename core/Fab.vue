@@ -259,8 +259,8 @@ export default {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: var(--primary);
-  color: var(--foreground);
+  background: var(--secondary);
+  color: var(--background);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -274,7 +274,7 @@ export default {
 }
 
 .fab-action:hover .material-icons {
-  background: var(--primary);
+  background: var(--secondary);
 }
 
 .fab-action-label {

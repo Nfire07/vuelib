@@ -405,6 +405,7 @@ export default {
       if (this.height) style.height = this.height
       else if (this.fullHeight) style.height = '100%'
 
+      if (this.minWidth) style.minWidth = this.minWidth
       if (this.minHeight) style.minHeight = this.minHeight
       if (this.maxWidth !== null) style.maxWidth = unit(this.maxWidth)
       if (this.maxHeight !== null) style.maxHeight = unit(this.maxHeight)

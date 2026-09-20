@@ -331,13 +331,13 @@ export default {
 }
 
 .card--clickable:hover {
-  border-color: var(--primary);
+  border-color: var(--secondary);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px color-mix(in srgb, var(--foreground) 8%, transparent);
 }
 
 .card--clickable:focus {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--secondary);
   outline-offset: 2px;
 }
 
@@ -365,13 +365,13 @@ export default {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  background: color-mix(in srgb, var(--secondary) 10%, transparent);
   margin-bottom: 0.75rem;
 }
 
 .card__icon {
   font-size: 1.5rem;
-  color: var(--primary);
+  color: var(--secondary);
 }
 
 .card__body {
@@ -414,7 +414,7 @@ export default {
 }
 
 .card__item:hover {
-  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  background: color-mix(in srgb, var(--secondary) 10%, transparent);
 }
 
 .card__item-header {
@@ -466,7 +466,7 @@ export default {
 
 .card__cta {
   font-size: 0.8125rem;
-  color: var(--primary);
+  color: var(--secondary);
   font-weight: 500;
 }
 

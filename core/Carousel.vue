@@ -459,8 +459,8 @@ export default {
 
 .swiper-classic {
   padding: 1rem 0 3.5rem;
-  --swiper-navigation-color: var(--primary);
-  --swiper-pagination-color: var(--primary);
+  --swiper-navigation-color: var(--secondary);
+  --swiper-pagination-color: var(--secondary);
 }
 
 .classic-card {
@@ -494,8 +494,8 @@ export default {
   text-transform: uppercase;
   padding: 3px 10px;
   border-radius: 99px;
-  background: color-mix(in srgb, var(--primary) 12%, transparent);
-  color: var(--primary);
+  background: color-mix(in srgb, var(--secondary) 12%, transparent);
+  color: var(--secondary);
   margin-bottom: 8px;
 }
 .classic-card__title {
@@ -728,8 +728,8 @@ export default {
   text-transform: uppercase;
   padding: 3px 10px;
   border-radius: 99px;
-  border: 1px solid color-mix(in srgb, var(--secondary-foreground) 30%, transparent);
-  color: color-mix(in srgb, var(--secondary-foreground) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--secondary) 35%, transparent);
+  color: var(--secondary);
   margin-bottom: 10px;
 }
 .stack-card__title {
@@ -756,7 +756,7 @@ export default {
 
 .swiper-coverflow {
   padding: 2rem 0 3.5rem;
-  --swiper-pagination-color: var(--primary);
+  --swiper-pagination-color: var(--secondary);
 }
 .swiper-coverflow :deep(.swiper-slide) { width: 300px; height: 380px; }
 
@@ -840,8 +840,8 @@ export default {
   text-transform: uppercase;
   padding: 3px 10px;
   border-radius: 99px;
-  background: color-mix(in srgb, var(--primary) 12%, transparent);
-  color: var(--primary);
+  background: color-mix(in srgb, var(--secondary) 12%, transparent);
+  color: var(--secondary);
   margin-bottom: 10px;
 }
 .c-modal__title { font-size: 22px; font-weight: 700; color: var(--foreground); margin: 0 0 10px; }
