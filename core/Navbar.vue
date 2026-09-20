@@ -123,12 +123,11 @@ export default {
   text-shadow: 2px 2px #020202;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  transition: opacity 0.3s ease 0.15s, color 0.2s ease;
+  transition: opacity 0.3s ease 0.15s;
 }
 
-.icon-slot:hover {
+.icon-slot:hover .icon-label {
   opacity: 1;
-  color: var(--secondary);
 }
 
 .link-slot {
