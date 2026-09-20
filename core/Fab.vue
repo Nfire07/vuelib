@@ -121,7 +121,7 @@ export default {
 
 .fab-container {
   position: fixed;
-  z-index: 1000;
+  z-index: 1000000;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
