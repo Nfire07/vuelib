@@ -86,13 +86,8 @@ export default {
 }
 
 .icon-slot {
-  width: max-content; 
-  max-width: 60px; 
+  width: max-content;
   border: none;
-}
-
-.icon-slot:hover {
-  max-width: 500px; 
 }
 
 .icon-link {
@@ -115,7 +110,7 @@ export default {
 }
 
 .icon-label {
-  opacity: 0;
+  opacity: 1;
   white-space: nowrap; 
   font-size: 12px;
   font-weight: 400;
@@ -124,10 +119,6 @@ export default {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   transition: opacity 0.3s ease 0.15s;
-}
-
-.icon-slot:hover .icon-label {
-  opacity: 1;
 }
 
 .link-slot {
@@ -175,12 +166,6 @@ export default {
     gap: 5px;
   }
 
-  .icon-slot { 
-    max-width: 50px; 
-  }
-  .icon-slot:hover { 
-    max-width: 350px; 
-  }
   .icon-img { width: 30px; height: 30px; }
   
   .link-slot { width: 32px; }
