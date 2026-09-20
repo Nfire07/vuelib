@@ -126,7 +126,7 @@ export default {
   transition: opacity 0.3s ease 0.15s, color 0.2s ease;
 }
 
-.icon-slot:hover .icon-label {
+.icon-slot:hover {
   opacity: 1;
   color: var(--secondary);
 }
