@@ -187,9 +187,24 @@ export default {
 .markdown-preview-wrapper :deep(.md-editor-preview blockquote),
 .markdown-preview-wrapper :deep(.md-editor-preview strong),
 .markdown-preview-wrapper :deep(.md-editor-preview em),
-.markdown-preview-wrapper :deep(.md-editor-preview span) {
+.markdown-preview-wrapper :deep(.md-editor-preview :not(code) > span) {
   color: var(--foreground);
 }
+
+html:not(.dark) .markdown-preview-wrapper :deep(.md-editor-preview) {
+  --md-theme-code-block-bg-color: #f6f8fa;
+  --md-theme-code-block-color: #1a1a1a;
+  --md-theme-code-before-bg-color: #eef1f4;
+  --md-theme-code-inline-bg-color: rgba(0, 0, 0, 0.06);
+}
+
+html.dark .markdown-preview-wrapper :deep(.md-editor-preview) {
+  --md-theme-code-block-bg-color: #1a1a1a;
+  --md-theme-code-block-color: #dfdfdf;
+  --md-theme-code-before-bg-color: #202020;
+  --md-theme-code-inline-bg-color: rgba(255, 255, 255, 0.08);
+}
+
 .markdown-preview-wrapper :deep(.md-editor-preview a),
 .markdown-preview-wrapper :deep(.md-editor-preview a:hover) {
   color: var(--primary) !important;
@@ -197,10 +212,5 @@ export default {
 }
 .markdown-preview-wrapper :deep(.md-editor-preview blockquote) {
   border-left-color: var(--secondary) !important;
-}
-
-
-.markdown-preview-wrapper :deep(.md-editor-preview a) {
-  cursor: pointer;
 }
 </style>

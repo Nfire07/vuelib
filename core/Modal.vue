@@ -167,7 +167,7 @@ export default {
 }
 
 .modal-close:hover {
-  background: rgba(0, 0, 0, 0.08);
+  background: color-mix(in srgb, var(--foreground, #1a1a1a) 10%, transparent);
   opacity: 1;
 }
 

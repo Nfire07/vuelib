@@ -313,9 +313,9 @@ export default {
 .skeleton-block {
   background: linear-gradient(
     90deg,
-    rgba(0, 0, 0, 0.08) 25%,
-    rgba(0, 0, 0, 0.14) 50%,
-    rgba(0, 0, 0, 0.08) 75%
+    color-mix(in srgb, var(--foreground) 8%, transparent) 25%,
+    color-mix(in srgb, var(--foreground) 14%, transparent) 50%,
+    color-mix(in srgb, var(--foreground) 8%, transparent) 75%
   );
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.4s infinite ease-in-out;
@@ -349,7 +349,7 @@ export default {
 .spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid rgba(0, 0, 0, 0.12);
+  border: 3px solid color-mix(in srgb, var(--foreground) 12%, transparent);
   border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.75s linear infinite;
@@ -369,7 +369,7 @@ export default {
 }
 
 .data-loader__empty .state-icon {
-  color: rgba(0, 0, 0, 0.3);
+  color: color-mix(in srgb, var(--foreground) 30%, transparent);
 }
 
 .state-title {
@@ -399,8 +399,8 @@ export default {
   gap: 0.4rem;
   margin-top: 0.4rem;
   padding: 0.55rem 1.1rem;
-  background: rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.25);
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--foreground) 25%, transparent);
   border-radius: 8px;
   color: var(--primary);
   font-family: 'DM Sans', sans-serif;
@@ -411,7 +411,7 @@ export default {
 }
 
 .retry-btn:hover {
-  background: rgba(0, 0, 0, 0.12);
+  background: color-mix(in srgb, var(--foreground) 12%, transparent);
   border-color: var(--primary);
 }
 
